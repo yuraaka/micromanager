@@ -6,9 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"{{joinPath .ProjectName "services" "common" "std"}}"
 	"{{joinPath .ProjectName "services" .ServiceName "api"}}"
+
+	"github.com/gin-gonic/gin"
 )
 
 func NewRouter(service api.Service) *gin.Engine {
+	gin.SetMode(gin.ReleaseMode)
 	std.SetupGinValidator()
 	router := gin.Default()
 	router.GET("/", func(c *gin.Context) {

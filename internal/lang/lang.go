@@ -336,23 +336,31 @@ func runGoModTidy(root string) error {
 }
 
 func findLocalPack(root, lang string) (*Pack, error) {
-	candidate := filepath.Join(root, "pack", "lang", strings.ToLower(lang))
-	info, err := os.Stat(candidate)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
+	// Search current and parent directories for pack/lang/<lang>
+	langLower := strings.ToLower(lang)
+	maxAscend := 5
+	cur := root
+	for i := 0; i <= maxAscend; i++ {
+		candidate := filepath.Join(cur, "pack", "lang", langLower)
+		info, err := os.Stat(candidate)
+		if err == nil && info.IsDir() {
+			// Optional safety: ensure templates/service exists
+			if pathExists(filepath.Join(candidate, "templates", "service")) {
+				meta := Metadata{
+					ID:      "local-" + langLower,
+					Name:    strings.Title(langLower) + " pack",
+					Lang:    lang,
+					Version: "0.0.0",
+				}
+				return &Pack{Meta: meta, BaseDir: candidate}, nil
+			}
 		}
-		return nil, err
+		// Move up one directory
+		parent := filepath.Dir(cur)
+		if parent == cur { // reached filesystem root
+			break
+		}
+		cur = parent
 	}
-	if !info.IsDir() {
-		return nil, nil
-	}
-
-	meta := Metadata{
-		ID:      "local-" + strings.ToLower(lang),
-		Name:    strings.Title(strings.ToLower(lang)) + " pack",
-		Lang:    lang,
-		Version: "0.0.0",
-	}
-	return &Pack{Meta: meta, BaseDir: candidate}, nil
+	return nil, nil
 }

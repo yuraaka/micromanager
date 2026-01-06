@@ -1,6 +1,0 @@
-// Package api defines request and response types for the {{.ServiceName}} service API.
-package api
-
-type HelloRequest struct {
-	Friend User `json:"friend"`
-}
