@@ -4,7 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"{{.ServiceImportPath}}/api"
+	"{{joinPath .ProjectName "services" "common" "std"}}"
+	"{{joinPath .ProjectName "services" .ServiceName "api"}}"
 )
 
 func NewRouter(service api.Service) *gin.Engine {
@@ -14,7 +15,7 @@ func NewRouter(service api.Service) *gin.Engine {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
-	v1 := router.Group("{{.ServiceRoutePrefix}}")
+	v1 := router.Group("{{printf "/%s/v1" (kebab .ServiceName)}}")
 	v1.POST("/hello", func(c *gin.Context) {
 		var req api.HelloRequest
 		if err := c.ShouldBindJSON(&req); err != nil {

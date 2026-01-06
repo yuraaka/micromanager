@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strings"
 
-	"{{.ServiceImportPath}}/api"
+	"{{joinPath .ProjectName "services" .ServiceName "api"}}"
 )
 
 type HTTPClient struct {
@@ -48,7 +48,7 @@ func (c *HTTPClient) SayHello(ctx context.Context, req api.HelloRequest) (*api.H
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	endpoint := c.baseURL + "{{.ServiceRoutePrefix}}/hello"
+	endpoint := c.baseURL + "{{printf "/%s/v1" (kebab .ServiceName)}}/hello"
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)

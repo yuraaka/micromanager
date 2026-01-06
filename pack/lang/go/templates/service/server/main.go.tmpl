@@ -3,7 +3,8 @@ package main
 import (
 	logrus "github.com/sirupsen/logrus"
 
-	"{{.ServiceImportPath}}/core"
+	"{{joinPath .ProjectName "services" "common" "std"}}"
+	"{{joinPath .ProjectName "services" .ServiceName "core"}}"
 )
 
 func main() {

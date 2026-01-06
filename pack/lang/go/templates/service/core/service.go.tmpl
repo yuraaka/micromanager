@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"{{.ServiceImportPath}}/api"
+	"{{joinPath .ProjectName "services" .ServiceName "api"}}"
 )
 
 type service struct {

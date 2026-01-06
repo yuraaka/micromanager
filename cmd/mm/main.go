@@ -9,7 +9,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"micromanager/internal/config"
+	"micromanager/internal/lang"
+	"micromanager/internal/runtime"
 	"micromanager/internal/scaffold"
+	mmtest "micromanager/internal/testing"
 )
 
 func main() {
@@ -23,6 +26,7 @@ func main() {
 	rootCmd.AddCommand(runCommand())
 	rootCmd.AddCommand(updateCommand())
 	rootCmd.AddCommand(testCommand())
+	rootCmd.AddCommand(packsCommand())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -136,13 +140,45 @@ func newCommand() *cobra.Command {
 }
 
 func runCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "run",
+	var docker bool
+	var minikube bool
+
+	cmd := &cobra.Command{
+		Use:   "run [service]",
 		Short: "Run services",
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return fmt.Errorf("not implemented yet")
+			target := "all"
+			if len(args) == 1 {
+				target = args[0]
+			}
+
+			mode := runtime.ModeLocal
+			if docker {
+				mode = runtime.ModeDocker
+			}
+			if minikube {
+				mode = runtime.ModeMinikube
+			}
+
+			root, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+
+			endpoint, err := runtime.Run(cmd.Context(), root, target, mode)
+			if err != nil {
+				return err
+			}
+
+			fmt.Printf("Service '%s' running in %s mode at %s\n", target, mode, endpoint)
+			return nil
 		},
 	}
+
+	cmd.Flags().BoolVarP(&docker, "docker", "d", false, "run services in docker compose")
+	cmd.Flags().BoolVarP(&minikube, "minikube", "m", false, "run services in minikube")
+	return cmd
 }
 
 func updateCommand() *cobra.Command {
@@ -156,11 +192,84 @@ func updateCommand() *cobra.Command {
 }
 
 func testCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "test",
+	cmd := &cobra.Command{
+		Use:   "test [path]",
 		Short: "Run tests",
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return fmt.Errorf("not implemented yet")
+			target := "all"
+			if len(args) == 1 {
+				target = args[0]
+			}
+
+			root, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+
+			return mmtest.Run(cmd.Context(), root, target)
 		},
 	}
+	return cmd
+}
+
+func packsCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "packs",
+		Short: "Manage language packs",
+	}
+
+	listCmd := &cobra.Command{
+		Use:   "list",
+		Short: "List available language packs",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			root, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+			packs, err := lang.LoadAll(root)
+			if err != nil {
+				return err
+			}
+			if len(packs) == 0 {
+				fmt.Println("No packs found in .mm/packs")
+				return nil
+			}
+			for _, p := range packs {
+				fmt.Printf("%s\t%s\t(lang=%s, v=%s)\n", p.Meta.ID, p.Meta.Name, p.Meta.Lang, p.Meta.Version)
+			}
+			return nil
+		},
+	}
+
+	validateCmd := &cobra.Command{
+		Use:   "validate",
+		Short: "Validate all language packs",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			root, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+			packs, err := lang.LoadAll(root)
+			if err != nil {
+				return err
+			}
+			if len(packs) == 0 {
+				fmt.Println("No packs found in .mm/packs")
+				return nil
+			}
+			for _, p := range packs {
+				if err := lang.Validate(p); err != nil {
+					fmt.Printf("%s: INVALID (%v)\n", p.Meta.ID, err)
+				} else {
+					fmt.Printf("%s: OK\n", p.Meta.ID)
+				}
+			}
+			return nil
+		},
+	}
+
+	cmd.AddCommand(listCmd)
+	cmd.AddCommand(validateCmd)
+	return cmd
 }

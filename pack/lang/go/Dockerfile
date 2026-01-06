@@ -1,15 +1,12 @@
-FROM golang:1.25.2-alpine3.22 AS build
+FROM golang:1.21-alpine AS build
 WORKDIR /app
 COPY . .
-RUN go mod download
-RUN go build -o /tmp/{{snake .ServiceName}} ./{{snake .ServiceName}}/server
+RUN go mod tidy
+RUN go build -o /tmp/{{.ServiceBinaryName}} ./services/{{.ServiceDir}}/server
 
 FROM alpine:3.22
 EXPOSE 8000
 ENV PORT=8000
-RUN apk add --no-cache tini
-USER nobody
 WORKDIR /app
-COPY --from=build /tmp/{{snake .ServiceName}} /app/{{snake .ServiceName}}
-ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["./{{snake .ServiceName}}"]
+COPY --from=build /tmp/{{.ServiceBinaryName}} /app/{{.ServiceBinaryName}}
+ENTRYPOINT ["/app/{{.ServiceBinaryName}}"]
