@@ -1,0 +1,3 @@
+[environment]
+PORT =          { local = 8000,             docker = 8000 }
+GREETING_TAIL = { local = "from local env", docker = "from docker env" }

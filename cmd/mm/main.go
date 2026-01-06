@@ -35,12 +35,7 @@ func main() {
 }
 
 func initCommand() *cobra.Command {
-	var backendLang string
-	var frontendLang string
-	var frontendServer string
-	var frontendClient string
-	var databaseEngine string
-	var packageManager string
+	var lang string
 
 	cmd := &cobra.Command{
 		Use:   "init <path>",
@@ -60,43 +55,24 @@ func initCommand() *cobra.Command {
 			}
 
 			defaults, err := scaffold.InitRepo(cmd.Context(), absTarget, scaffold.InitOptions{
-				BackendLang:    backendLang,
-				FrontendLang:   frontendLang,
-				FrontendServer: frontendServer,
-				FrontendClient: frontendClient,
-				DatabaseEngine: databaseEngine,
-				PackageManager: packageManager,
+				Lang: lang,
 			})
 			if err != nil {
 				return err
 			}
 
 			fmt.Printf("Defaults written to %s\n", filepath.Join(absTarget, ".mm", "defaults.toml"))
-			fmt.Printf("Backend: %s | Frontend: %s/%s (%s, %s) | Database: %s\n",
-				defaults.Backend.Lang,
-				defaults.Frontend.Server,
-				defaults.Frontend.Client,
-				defaults.Frontend.Lang,
-				defaults.Frontend.PackageManager,
-				defaults.Database.Engine,
-			)
+			fmt.Printf("Lang: %s\n", defaults.Lang)
 			return nil
 		},
 	}
 
-	cmd.Flags().StringVar(&backendLang, "back", "", "backend language (default: go)")
-	cmd.Flags().StringVar(&frontendLang, "front-lang", "", "frontend language (default: ts)")
-	cmd.Flags().StringVar(&frontendServer, "front", "", "frontend server framework (default: next.js)")
-	cmd.Flags().StringVar(&frontendClient, "front-client", "", "frontend client library (default: react)")
-	cmd.Flags().StringVar(&databaseEngine, "db", "", "database engine (default: postgres)")
-	cmd.Flags().StringVar(&packageManager, "pkg", "", "frontend package manager (default: pnpm)")
+	cmd.Flags().StringVar(&lang, "lang", "", "service language (default: go)")
 	return cmd
 }
 
 func newCommand() *cobra.Command {
-	var frontendOnly bool
 	var empty bool
-	var deps []string
 
 	cmd := &cobra.Command{
 		Use:   "new <service-name>",
@@ -119,10 +95,8 @@ func newCommand() *cobra.Command {
 			}
 
 			_, err = scaffold.NewService(root, name, scaffold.NewServiceOptions{
-				FrontendOnly: frontendOnly,
-				Empty:        empty,
-				Defaults:     defaults,
-				Dependencies: deps,
+				Empty:    empty,
+				Defaults: defaults,
 			})
 			if err != nil {
 				return err
@@ -133,9 +107,7 @@ func newCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVar(&frontendOnly, "front", false, "generate a frontend-only service")
 	cmd.Flags().BoolVar(&empty, "empty", false, "generate an external/empty service (Dockerfile + service.toml)")
-	cmd.Flags().StringSliceVar(&deps, "dep", nil, "declare service dependencies (names)")
 	return cmd
 }
 

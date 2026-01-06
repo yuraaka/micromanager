@@ -12,27 +12,7 @@ import (
 
 // Defaults represents repository-wide defaults stored in .mm/defaults.toml.
 type Defaults struct {
-	Backend  BackendDefaults  `toml:"backend"`
-	Frontend FrontendDefaults `toml:"frontend"`
-	Database DatabaseDefaults `toml:"database"`
-}
-
-// BackendDefaults configures backend language defaults.
-type BackendDefaults struct {
 	Lang string `toml:"lang"`
-}
-
-// FrontendDefaults configures frontend defaults.
-type FrontendDefaults struct {
-	Lang           string `toml:"lang"`
-	Server         string `toml:"server"`
-	Client         string `toml:"client"`
-	PackageManager string `toml:"packageManager"`
-}
-
-// DatabaseDefaults configures database defaults.
-type DatabaseDefaults struct {
-	Engine string `toml:"engine"`
 }
 
 // ServiceConfig represents per-service configuration stored in service.toml.
@@ -67,14 +47,7 @@ func (s ServiceConfig) HasDependencies() bool {
 // DefaultDefaults returns opinionated defaults for new repositories.
 func DefaultDefaults() Defaults {
 	return Defaults{
-		Backend: BackendDefaults{Lang: "go"},
-		Frontend: FrontendDefaults{
-			Lang:           "ts",
-			Server:         "next.js",
-			Client:         "react",
-			PackageManager: "pnpm",
-		},
-		Database: DatabaseDefaults{Engine: "postgres"},
+		Lang: "go",
 	}
 }
 
