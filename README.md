@@ -44,7 +44,7 @@ MicroManager generates fully-configured microservice projects from templates in 
 ## Installation
 
 ```bash
-go install github.com/yuraaka/micromanager/cmd/micromanager@latest
+go install github.com/yuraaka/micromanager/cmd/mm@latest
 ```
 
 Or download pre-built binaries from [releases](https://github.com/yuraaka/micromanager/releases).
@@ -52,37 +52,86 @@ Or download pre-built binaries from [releases](https://github.com/yuraaka/microm
 ## Quick Start
 
 ```bash
-# Create a new Go REST API service
-micromanager new my-service --lang go --type service
+# Initialize a new project directory
+mm init my-project
 
 # Navigate to the project
-cd my-service
+cd my-project
 
-# Start development environment
-make dev
+# Create a new service
+mm new api-service
+
+# Run the service locally
+mm run services/api-service
 ```
 
-Your service is now running at `http://localhost:8080` with hot-reload enabled.
+Your service is now running with the configuration from `service.toml`.
 
 ## Usage
 
 ```bash
-micromanager new <project-name> [flags]
+# Initialize a new project directory
+mm init <path> [--lang <language>]
+
+# Create a new service within the project
+mm new <service-name> [--empty]
+
+# Run a service
+mm run <path-to-service> [-m <mode>]
+
+# Test services
+mm test [path]
+
+# Manage language packs
+mm packs list
+mm packs validate
 ```
 
-### Flags
-- `--lang`: Programming language (default: "go")
-- `--type`: Service type (default: "service")
-- `--output`: Output directory (default: current directory)
+### Commands
+
+**init** - Initialize repository defaults and structure
+- `--lang`: Default language for services (default: "go")
+
+**new** - Create a new service skeleton
+- `--empty`: Generate an external/empty service (Dockerfile + service.toml only)
+
+**run** - Build and run a service with environment from service.toml
+- `-m, --mode`: Environment mode: `local`, `docker`, or `minikube` (default: "local")
+
+**test** - Run tests for all services or a specific service
+
+**packs** - Manage language packs (list, validate)
 
 ### Examples
 
 ```bash
-# Create a Go service with custom output path
-micromanager new my-api --lang go --output ./services/my-api
+# Initialize a Go project
+mm init my-project --lang go
+cd my-project
 
-# Create a worker service
-micromanager new my-worker --type worker
+# Create a new service
+mm new auth-service
+
+# Create an empty/external service (just Dockerfile + config)
+mm new redis --empty
+
+# Run service locally
+mm run services/auth-service
+
+# Run service in Docker
+mm run services/auth-service -m docker
+
+# Run service in Minikube
+mm run services/auth-service -m minikube
+
+# Test all services
+mm test
+
+# Test specific service
+mm test services/auth-service
+
+# List available language packs
+mm packs list
 ```
 
 ## Project Structure (Go)
@@ -133,6 +182,13 @@ my-service/
 - [ ] **Custom templates**: Import and share community templates
 - [ ] **Interactive mode**: Guided project setup with prompts
 - [ ] **Migration tools**: Convert existing projects to MicroManager structure
+
+### Testing & Deployment
+- [ ] **Multi-environment testing**: Test services in local, Docker, and Minikube environments
+- [ ] **Service orchestration**: Run and test multiple microservices together
+- [ ] **Deployment pipeline generation**: Auto-generate GitHub Actions, GitLab CI, and other CI/CD workflows
+- [ ] **Mock & stub generation**: Automatically generate mocks and stubs for advanced testing
+- [ ] **Integration test scaffolding**: Pre-configured test environments for service dependencies
 
 ### Developer Experience
 - [ ] Web UI for template management
