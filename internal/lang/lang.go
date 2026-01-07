@@ -139,7 +139,7 @@ func ApplyService(root string, p Pack, serviceName string) error {
 
 	commonSrc := filepath.Join(base, "common")
 	if pathExists(commonSrc) {
-		commonDst := filepath.Join(root, "services", "common")
+		commonDst := filepath.Join(root, "common")
 		if err := os.RemoveAll(commonDst); err != nil {
 			return err
 		}

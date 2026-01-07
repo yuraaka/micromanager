@@ -112,44 +112,24 @@ func newCommand() *cobra.Command {
 }
 
 func runCommand() *cobra.Command {
-	var docker bool
-	var minikube bool
+	var mode string
 
 	cmd := &cobra.Command{
-		Use:   "run [service]",
-		Short: "Run services",
-		Args:  cobra.MaximumNArgs(1),
+		Use:   "run <path-to-service>",
+		Short: "Build and run a service locally with environment variables from service.toml",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			target := "all"
-			if len(args) == 1 {
-				target = args[0]
-			}
+			servicePath := args[0]
 
-			mode := runtime.ModeLocal
-			if docker {
-				mode = runtime.ModeDocker
-			}
-			if minikube {
-				mode = runtime.ModeMinikube
-			}
-
-			root, err := os.Getwd()
-			if err != nil {
+			if err := runtime.RunService(cmd.Context(), servicePath, mode); err != nil {
 				return err
 			}
 
-			endpoint, err := runtime.Run(cmd.Context(), root, target, mode)
-			if err != nil {
-				return err
-			}
-
-			fmt.Printf("Service '%s' running in %s mode at %s\n", target, mode, endpoint)
 			return nil
 		},
 	}
 
-	cmd.Flags().BoolVarP(&docker, "docker", "d", false, "run services in docker compose")
-	cmd.Flags().BoolVarP(&minikube, "minikube", "m", false, "run services in minikube")
+	cmd.Flags().StringVarP(&mode, "mode", "m", runtime.ModeLocal, "environment mode (local, docker, minikube)")
 	return cmd
 }
 
